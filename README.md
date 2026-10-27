@@ -1,34 +1,86 @@
-# Machine Learning Project
+# Machine Learning Projects: Airbnb Price Prediction and Telecom Churn
 
-By Akhil Binjola
+Two end-to-end supervised learning projects built with Python and Scikit-learn.
 
-Two end-to-end ML case studies in Python (pandas, scikit-learn, XGBoost, matplotlib/seaborn).
+| Part | Problem | Type | Best model |
+|---|---|---|---|
+| A | Predict Airbnb listing prices | Regression | XGBoost (R² 0.64) |
+| B | Predict telecom customer churn | Binary classification | Logistic Regression (accuracy 82%) |
 
-## Part A – Airbnb Price Prediction (Regression)
-File: `Machine_learning_Project_Part_A.ipynb`
-Dataset: `Airbnb_data - airbnb_data.csv`
+---
 
-Predict log-transformed listing price (`log_price`) from property/room type, amenities, host features, location and reviews.
-- Cleaning: datetime parsing, host_response_rate %, boolean flags (cleaning_fee, profile pic, verified, instant_bookable), median imputation
-- Feature engineering: `amenity_count`, `host_duration`, `days_since_last_review`, `review_duration`, `has_review`
-- Encoding: one-hot for property_type, room_type, bed_type, cancellation_policy, city, neighbourhood (~691 cols)
-- Model: LinearRegression with train_test_split + SimpleImputer, evaluated with MAE / RMSE / R2, residual + actual-vs-predicted plots
+## Part A: Airbnb Rental Price Prediction
 
-Video explanation: https://drive.google.com/file/d/1dYe1Ju-aDV_yeAtG4guijOf4aQknr9yJ/view?usp=sharing
+**Goal:** predict the log-transformed nightly price of a listing from its property, host, location and review features.
 
-## Part B – Telecom Customer Churn Prediction (Classification)
-File: `Machine_learning_Project_Part_B.ipynb`
-Dataset: `Customer_data - customer_data.csv` (7043 rows x 21 cols)
+**Data:** 74,111 listings, 29 raw columns, which become 691 features after encoding.
 
-Predict `Churn` from contract, tenure, charges, payment method and demographics.
-- Cleaning: TotalCharges to numeric + median impute, drop customerID, Yes/No to 0/1
-- Encoding: one-hot gender, InternetService, Contract, PaymentMethod
-- Models: LogisticRegression (baseline ~82% acc, ROC AUC ~0.75), RandomForest, XGBoost
-- Evaluation: accuracy, precision, recall, F1, ROC AUC, confusion matrix, stratified split
+**Approach**
+1. Cleaned the data and filled missing numeric values with the median.
+2. Engineered features: amenity count, host tenure and review recency.
+3. One-hot encoded property type, room type, city and neighbourhood.
+4. Trained a Linear Regression baseline, then XGBoost and HistGradientBoosting.
+5. Tested a reduced feature set to see whether feature selection helped.
 
-Video explanation: https://drive.google.com/file/d/1NJYrwbCPxx0_AdT_34GlH91ameroKMjK/view?usp=sharing
+**Results** (log price target, hold-out test set)
+
+| Model | R² | RMSE |
+|---|---|---|
+| Linear Regression (baseline) | 0.378 | 0.565 |
+| HistGradientBoosting | 0.632 | 0.435 |
+| **XGBoost** | **0.637** | **0.432** |
+| XGBoost, reduced feature set | 0.327 | 0.588 |
+
+**Takeaways**
+- Tree-based models explain far more of the price variation than the linear baseline, which suggests non-linear relationships in the data.
+- Dropping features hurt performance here, so the full feature set was kept.
+
+---
+
+## Part B: Telecom Customer Churn Prediction
+
+**Goal:** identify customers likely to leave so retention teams can act early.
+
+**Data:** 7,043 subscribers, 21 features. About 26% of customers churned.
+
+**Approach**
+1. Converted `TotalCharges` to numeric and filled gaps with the median.
+2. One-hot encoded the categorical columns.
+3. Explored churn against tenure and monthly charges.
+4. Compared Logistic Regression, Random Forest and XGBoost.
+
+**Results** (test set)
+
+| Model | Accuracy | Precision | Recall | F1 | ROC-AUC* |
+|---|---|---|---|---|---|
+| **Logistic Regression** | **0.823** | 0.689 | 0.601 | 0.642 | 0.752 |
+| XGBoost | 0.809 | 0.671 | 0.547 | 0.603 | 0.725 |
+| Random Forest | 0.797 | 0.658 | 0.485 | 0.559 | 0.697 |
+
+\*ROC-AUC here is computed from predicted class labels, not predicted probabilities, so it understates what a threshold-independent value would be. Recomputing it with `predict_proba` is a planned improvement.
+
+**Takeaways**
+- Logistic Regression gave the best balance on every metric and is also the easiest to explain to stakeholders.
+- Churners tend to have shorter tenure and higher monthly charges.
+- Recall is the weak spot for every model (about 49–60%), so the next steps are class weighting and threshold tuning.
+
+---
+
+## Tech stack
+
+Python, Pandas, NumPy, Scikit-learn, XGBoost, Matplotlib, Seaborn, Jupyter / Google Colab.
 
 ## How to run
-1. Open notebooks in Colab / Jupyter
-2. Upload the matching CSV (`/content/...` path in notebooks or edit path)
-3. Run all cells top to bottom
+
+```bash
+git clone https://github.com/AkhilBinjola/Machine-Learning-Project
+cd Machine-Learning-Project
+pip install -r requirements.txt
+jupyter notebook
+```
+
+Open the Part A or Part B notebook. The notebooks read their CSV files from `/content/` (Google Colab). To run locally, change the `pd.read_csv(...)` path to wherever you saved the dataset.
+
+## Author
+
+Akhil Binjola · [LinkedIn](https://linkedin.com/in/akhilbinjola) · [GitHub](https://github.com/AkhilBinjola)
